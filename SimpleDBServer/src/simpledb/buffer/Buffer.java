@@ -16,6 +16,7 @@ import simpledb.file.*;
 public class Buffer {
    private Page contents = new Page();
    private Block blk = null;
+   private int id;
    private int pins = 0;
    private int modifiedBy = -1;  // negative means not modified
    private int logSequenceNumber = -1; // negative means no corresponding log record
@@ -34,7 +35,9 @@ public class Buffer {
     * {@link simpledb.server.SimpleDB#initFileAndLogMgr(String)} or
     * is called first.
     */
-   public Buffer() {}
+   public Buffer(int id) {
+      this.id = id;
+   }
    
    /**
     * Returns the integer value at the specified offset of the
@@ -186,5 +189,9 @@ public class Buffer {
       fmtr.format(contents);
       blk = contents.append(filename);
       pins = 0;
+   }
+
+   public String toString() {
+      return "Buffer " + id + ":\t" + blk + "\tpinned:" + (pins > 0);
    }
 }

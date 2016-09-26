@@ -75,7 +75,7 @@
         <entry file="file://$PROJECT_DIR$/../SimpleDBServer/src/simpledb/buffer/BufferMgr.java">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="143">
-              <caret line="48" column="0" selection-start-line="48" selection-start-column="0" selection-end-line="48" selection-end-column="0" />
+              <caret line="52" column="0" selection-start-line="52" selection-start-column="0" selection-end-line="52" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -115,11 +115,11 @@
       <file leaf-file-name="BasicBufferMgr.java" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/../SimpleDBServer/src/simpledb/buffer/BasicBufferMgr.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="476">
-              <caret line="40" column="7" selection-start-line="40" selection-start-column="7" selection-end-line="40" selection-end-column="7" />
+            <state relative-caret-position="596">
+              <caret line="48" column="7" selection-start-line="48" selection-start-column="7" selection-end-line="48" selection-end-column="7" />
               <folding>
                 <element signature="imports" expanded="true" />
-                <marker date="1217435930000" expanded="true" signature="3326:3332" ph="{...}" />
+                <marker date="1474922692000" expanded="true" signature="4346:4352" ph="{...}" />
               </folding>
             </state>
           </provider>
@@ -809,7 +809,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/../SimpleDBServer/src/simpledb/buffer/BasicBufferMgr.java</url>
-          <line>80</line>
+          <line>87</line>
           <properties />
           <option name="timeStamp" value="30" />
         </line-breakpoint>
@@ -1180,10 +1180,10 @@
         <state relative-caret-position="158">
           <caret line="174" column="0" selection-start-line="174" selection-start-column="0" selection-end-line="174" selection-end-column="0" />
           <folding>
-            <element signature="e#3772#3773#0" expanded="true" />
-            <element signature="e#3795#3796#0" expanded="true" />
-            <element signature="e#4543#4544#0" expanded="true" />
-            <element signature="e#4571#4572#0" expanded="true" />
+            <element signature="e#3821#3822#0" expanded="true" />
+            <element signature="e#3844#3845#0" expanded="true" />
+            <element signature="e#4592#4593#0" expanded="true" />
+            <element signature="e#4620#4621#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -1213,7 +1213,7 @@
     <entry file="file://$PROJECT_DIR$/../SimpleDBServer/src/simpledb/buffer/BufferMgr.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="143">
-          <caret line="48" column="0" selection-start-line="48" selection-start-column="0" selection-end-line="48" selection-end-column="0" />
+          <caret line="52" column="0" selection-start-line="52" selection-start-column="0" selection-end-line="52" selection-end-column="0" />
           <folding />
         </state>
       </provider>
@@ -1236,11 +1236,11 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/../SimpleDBServer/src/simpledb/buffer/BasicBufferMgr.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="476">
-          <caret line="40" column="7" selection-start-line="40" selection-start-column="7" selection-end-line="40" selection-end-column="7" />
+        <state relative-caret-position="596">
+          <caret line="48" column="7" selection-start-line="48" selection-start-column="7" selection-end-line="48" selection-end-column="7" />
           <folding>
             <element signature="imports" expanded="true" />
-            <marker date="1217435930000" expanded="true" signature="3326:3332" ph="{...}" />
+            <marker date="1474922692000" expanded="true" signature="4346:4352" ph="{...}" />
           </folding>
         </state>
       </provider>
