@@ -85,6 +85,7 @@ class BasicBufferMgr {
       if (buff == null)
          return null;
       buff.assignToNew(filename, fmtr);
+      bufferMap.remove(buff.block());
       bufferMap.put(buff.block(), buff);
       buff.pin();
       return buff;
@@ -98,7 +99,6 @@ class BasicBufferMgr {
       buff.unpin();
       if (!buff.isPinned()) {
          unpinnedBuffers.add(buff);
-         bufferMap.remove(buff.block());
       }
    }
    
