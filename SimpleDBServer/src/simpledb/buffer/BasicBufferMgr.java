@@ -13,7 +13,7 @@ import java.util.Queue;
  *
  */
 class BasicBufferMgr {
-   private Queue<Buffer> unpinnedBuffers = new LinkedList<>();
+   private Queue<Buffer> availableBuffers = new LinkedList<>();
    private Map<Block, Buffer> bufferMap = new HashMap<>();
    private Buffer[] bufferpool;
    
@@ -34,7 +34,7 @@ class BasicBufferMgr {
       bufferpool = new Buffer[numbuffs];
       for (int i=0; i<numbuffs; i++) {
          bufferpool[i] = new Buffer(i);
-         unpinnedBuffers.add(bufferpool[i]);
+         availableBuffers.add(bufferpool[i]);
       }
    }
    
@@ -43,10 +43,9 @@ class BasicBufferMgr {
     * @param txnum the transaction's id number
     */
    synchronized void flushAll(int txnum) {
-      for (Buffer buff : bufferpool) {
+      for (Buffer buff : bufferpool)
          if (buff.isModifiedBy(txnum))
             buff.flush();
-      }
    }
    
    /**
@@ -64,8 +63,10 @@ class BasicBufferMgr {
          buff = chooseUnpinnedBuffer();
          if (buff == null)
             return null;
-         bufferMap.put(blk, buff);
+         if (buff.block() != null)
+            bufferMap.remove(buff.block());
          buff.assignToBlock(blk);
+         bufferMap.put(blk, buff);
       }
       buff.pin();
       return buff;
@@ -84,8 +85,9 @@ class BasicBufferMgr {
       Buffer buff = chooseUnpinnedBuffer();
       if (buff == null)
          return null;
+      if (buff.block() != null)
+         bufferMap.remove(buff.block());
       buff.assignToNew(filename, fmtr);
-      bufferMap.remove(buff.block());
       bufferMap.put(buff.block(), buff);
       buff.pin();
       return buff;
@@ -98,7 +100,7 @@ class BasicBufferMgr {
    synchronized void unpin(Buffer buff) {
       buff.unpin();
       if (!buff.isPinned()) {
-         unpinnedBuffers.add(buff);
+         availableBuffers.add(buff);
       }
    }
    
@@ -107,7 +109,7 @@ class BasicBufferMgr {
     * @return the number of available buffers
     */
    int available() {
-      return unpinnedBuffers.size();
+      return availableBuffers.size();
    }
    
    private Buffer findExistingBuffer(Block blk) {
@@ -132,7 +134,7 @@ class BasicBufferMgr {
     */
    private Buffer chooseUnpinnedBuffer() {
       Buffer b;
-      while ((b = unpinnedBuffers.poll()) != null) {
+      while ((b = availableBuffers.poll()) != null) {
          if (!b.isPinned())
             return b;
       }
