@@ -6,6 +6,8 @@ import simpledb.buffer.*;
 import simpledb.tx.recovery.RecoveryMgr;
 import simpledb.tx.concurrency.ConcurrencyMgr;
 
+import java.util.*;
+
 /**
  * Provides transaction management for clients,
  * ensuring that all transactions are serializable, recoverable,
@@ -19,7 +21,9 @@ public class Transaction {
    private ConcurrencyMgr concurMgr;
    private int txnum;
    private BufferList myBuffers = new BufferList();
-   
+   private static List<Transaction> activeTx = new ArrayList<>();
+   private static int nqCheckpointCnt = 0;
+
    /**
     * Creates a new transaction and its associated 
     * recovery and concurrency managers.
@@ -33,9 +37,21 @@ public class Transaction {
     * is called first.
     */
    public Transaction() {
+      this.initialize();
+   }
+
+   private synchronized void initialize() {
+      nqCheckpointCnt++;
+      if (nqCheckpointCnt == 5) {
+         nqCheckpointCnt = 0;
+         RecoveryMgr.checkpoint();
+      }
       txnum       = nextTxNumber();
       recoveryMgr = new RecoveryMgr(txnum);
       concurMgr   = new ConcurrencyMgr();
+      activeTx.add(this);
+//      System.out.println(Arrays.toString(activeTx.toArray()));
+
    }
    
    /**
@@ -48,6 +64,7 @@ public class Transaction {
       recoveryMgr.commit();
       concurMgr.release();
       myBuffers.unpinAll();
+      activeTx.remove(this);
       System.out.println("transaction " + txnum + " committed");
    }
    
@@ -197,10 +214,18 @@ public class Transaction {
       unpin(blk);
       return blk;
    }
+
+   public static synchronized List<Transaction> getActiveTx() {
+      return activeTx;
+   }
    
    private static synchronized int nextTxNumber() {
       nextTxNum++;
       System.out.println("new transaction: " + nextTxNum);
       return nextTxNum;
+   }
+
+   public String toString() {
+      return String.valueOf(this.txnum);
    }
 }

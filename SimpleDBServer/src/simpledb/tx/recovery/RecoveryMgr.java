@@ -4,7 +4,11 @@ import static simpledb.tx.recovery.LogRecord.*;
 import simpledb.file.Block;
 import simpledb.buffer.Buffer;
 import simpledb.server.SimpleDB;
+import simpledb.tx.Transaction;
+
 import java.util.*;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 /**
  * The recovery manager.  Each transaction has its own recovery manager.
@@ -41,6 +45,13 @@ public class RecoveryMgr {
       SimpleDB.logMgr().flush(lsn);
    }
 
+   public static void checkpoint() {
+      //TODO: FLUSH
+       // SimpleDB.bufferMgr().flushAll();
+      int lsn = new NQCheckpointRecord(Transaction.getActiveTx()).writeToLog();
+      SimpleDB.logMgr().flush(lsn);
+   }
+
    /**
     * Recovers uncompleted transactions from the log,
     * then writes a quiescent checkpoint record to the log and flushes it.
@@ -50,7 +61,6 @@ public class RecoveryMgr {
       SimpleDB.bufferMgr().flushAll(txnum);
       int lsn = new CheckpointRecord().writeToLog();
       SimpleDB.logMgr().flush(lsn);
-
    }
 
    /**
@@ -113,19 +123,52 @@ public class RecoveryMgr {
     * transaction, it calls undo() on that record.
     * The method stops when it encounters a CHECKPOINT record
     * or the end of the log.
+    * In case it encounters NQCHECKPOINT record, the method will
+    * stop when the START, COMMIT, ROLLBACK record of first txNum in
+    * the activeTx list is found in the log.
+    * (Note the record only has to look at first txNum because
+    * the tx numbers are in a chronological order, oldest to latest)
     */
    private void doRecover() {
       Collection<Integer> finishedTxs = new ArrayList<Integer>();
       Iterator<LogRecord> iter = new LogRecordIterator();
+       Integer nqCkptEndpoint = -1;
       while (iter.hasNext()) {
          LogRecord rec = iter.next();
+         System.out.println(rec);
+
+          if ((Arrays.asList(START, COMMIT, ROLLBACK).contains(rec.op())) && nqCkptEndpoint == rec.txNumber())
+              return;
+
          if (rec.op() == CHECKPOINT)
             return;
+         if (rec.op() == NQCHECKPOINT) {
+             // get the activeTx list from NQCheckpointRecord.
+             // filter out finishedTxs from activeTx (since they are committed already)
+             // keep recovering until the all the tx to look for are looked at.
+                // keep going until START,COMMIT,ROLLBACK of txs[0]
+             // undo any actions that are in not in finishedTxs.
+             NQCheckpointRecord nq = (NQCheckpointRecord) rec;
+             List<Integer> filteredTxs = nq.getActiveTx()
+                     .stream()
+                     .filter(p -> !finishedTxs.contains(p))
+                     .collect(Collectors.toList());
+             // everything has been committed. No need to continue.
+             if (filteredTxs.size() == 0) {
+                 return;
+             } else {
+                 nqCkptEndpoint = filteredTxs.get(0);
+             }
+         }
          if (rec.op() == COMMIT || rec.op() == ROLLBACK)
             finishedTxs.add(rec.txNumber());
          else if (!finishedTxs.contains(rec.txNumber()))
             rec.undo(txnum);
       }
+   }
+
+   private static void doCheckpoint() {
+
    }
 
    /**
