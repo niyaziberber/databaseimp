@@ -7,17 +7,19 @@ public class ChangeMajor {
 		try {
 			Driver d = new SimpleDriver();
 			conn = d.connect("jdbc:simpledb://localhost", null);
-			Statement stmt = conn.createStatement();
+			for (int i = 0; i <10; i++) {
+				Statement stmt = conn.createStatement();
 
-			String cmd = "update STUDENT set MajorId=30 "
-			           + "where SName = 'amy'";
-			stmt.executeUpdate(cmd);
-			System.out.println("Amy is now a drama major.");
+				String cmd = "update STUDENT set MajorId=30 "
+						+ "where SName = 'amy'";
+				stmt.executeUpdate(cmd);
+				System.out.println("Amy is now a drama major.");
+				//Thread.sleep(200);
+			}
 		}
 		catch(SQLException e) {
 			e.printStackTrace();
-		}
-		finally {
+		} finally {
 			try {
 				if (conn != null)
 					conn.close();

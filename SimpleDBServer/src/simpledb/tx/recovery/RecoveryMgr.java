@@ -46,8 +46,6 @@ public class RecoveryMgr {
    }
 
    public static void checkpoint() {
-      //TODO: FLUSH
-       // SimpleDB.bufferMgr().flushAll();
       int lsn = new NQCheckpointRecord(Transaction.getActiveTx()).writeToLog();
       SimpleDB.logMgr().flush(lsn);
    }
@@ -165,10 +163,6 @@ public class RecoveryMgr {
          else if (!finishedTxs.contains(rec.txNumber()))
             rec.undo(txnum);
       }
-   }
-
-   private static void doCheckpoint() {
-
    }
 
    /**

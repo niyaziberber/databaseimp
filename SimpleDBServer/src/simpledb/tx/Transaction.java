@@ -60,7 +60,7 @@ public class Transaction {
     * writes and flushes a commit record to the log,
     * releases all locks, and unpins any pinned buffers.
     */
-   public void commit() {
+   public synchronized void commit() {
       recoveryMgr.commit();
       concurMgr.release();
       myBuffers.unpinAll();

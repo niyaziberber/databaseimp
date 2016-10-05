@@ -51,7 +51,8 @@ class NQCheckpointRecord implements LogRecord {
         for (int i = 0; i < tx.size()-1; i++) {
             s += tx.get(i)+" ";
         }
-        s+=(tx.get(tx.size()-1));
+        if (tx.size() > 0)
+            s+=(tx.get(tx.size()-1));
         return s;
     }
 
@@ -62,9 +63,10 @@ class NQCheckpointRecord implements LogRecord {
      */
     private List<Integer> listfyString(String s) {
         List<String> ls =  Arrays.asList(s.split(" "));
-        List<Integer> li = new ArrayList<Integer>();
+        List<Integer> li = new ArrayList<>();
         for (String ss : ls) {
-            li.add(Integer.valueOf(ss));
+            if (!ss.equals(""))
+                li.add(Integer.valueOf(ss));
         }
         return li;
     }
