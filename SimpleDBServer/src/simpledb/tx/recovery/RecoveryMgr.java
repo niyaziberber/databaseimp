@@ -135,7 +135,8 @@ public class RecoveryMgr {
          LogRecord rec = iter.next();
          System.out.println(rec);
 
-          if ((Arrays.asList(START, COMMIT, ROLLBACK).contains(rec.op())) && nqCkptEndpoint == rec.txNumber())
+          if ((Arrays.asList(START, COMMIT, ROLLBACK).contains(rec.op())) &&
+                  nqCkptEndpoint == rec.txNumber())
               return;
 
          if (rec.op() == CHECKPOINT)

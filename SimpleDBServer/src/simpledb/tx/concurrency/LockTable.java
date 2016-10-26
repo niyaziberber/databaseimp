@@ -1,6 +1,8 @@
 package simpledb.tx.concurrency;
 
 import simpledb.file.Block;
+
+import javax.xml.bind.SchemaOutputResolver;
 import java.util.*;
 
 /**
@@ -17,7 +19,7 @@ import java.util.*;
 class LockTable {
    private static final long MAX_TIME = 10000; // 10 seconds
    
-   private Map<Block,Integer> locks = new HashMap<Block,Integer>();
+   private static Map<Block,List<Integer>> locks = new HashMap<>();
    
    /**
     * Grants an SLock on the specified block.
@@ -29,19 +31,29 @@ class LockTable {
     * then an exception is thrown.
     * @param blk a reference to the disk block
     */
-   public synchronized void sLock(Block blk) {
+   public synchronized void sLock(Block blk, int txnum) {
       try {
-         long timestamp = System.currentTimeMillis();
-         while (hasXlock(blk) && !waitingTooLong(timestamp))
-            wait(MAX_TIME);
+         while (hasXlock(blk)) {
+            if (!olderTxExists(blk, txnum))
+                wait(MAX_TIME);
+             else
+                 throw new LockAbortException();
+         }
          if (hasXlock(blk))
-            throw new LockAbortException();
-         int val = getLockVal(blk);  // will not be negative
-         locks.put(blk, val+1);
+             throw new LockAbortException();
+          addLock(blk, txnum);
       }
       catch(InterruptedException e) {
          throw new LockAbortException();
       }
+   }
+
+   private void addLock(Block blk, int txnum) {
+       if (!locks.containsKey(blk)) {
+           ArrayList<Integer> lst = new ArrayList<>();
+           locks.put(blk, lst);
+       }
+       locks.get(blk).add(txnum);
    }
    
    /**
@@ -54,14 +66,17 @@ class LockTable {
     * then an exception is thrown.
     * @param blk a reference to the disk block
     */
-   synchronized void xLock(Block blk) {
+   synchronized void xLock(Block blk, int txnum) {
       try {
-         long timestamp = System.currentTimeMillis();
-         while (hasOtherSLocks(blk) && !waitingTooLong(timestamp))
-            wait(MAX_TIME);
-         if (hasOtherSLocks(blk))
+         while (hasOtherLocks(blk)) {
+             if (!olderTxExists(blk, txnum))
+                 wait(MAX_TIME);
+             else
+                 throw new LockAbortException();
+         }
+         if (hasOtherLocks(blk))
             throw new LockAbortException();
-         locks.put(blk, -1);
+         addLock(blk, -1*txnum);
       }
       catch(InterruptedException e) {
          throw new LockAbortException();
@@ -74,30 +89,36 @@ class LockTable {
     * then the waiting transactions are notified.
     * @param blk a reference to the disk block
     */
-   synchronized void unlock(Block blk) {
-      int val = getLockVal(blk);
-      if (val > 1)
-         locks.put(blk, val-1);
-      else {
-         locks.remove(blk);
-         notifyAll();
-      }
+   synchronized void unlock(Block blk, int txnum) {
+       if(locks.get(blk).size() > 1 && !locks.get(blk).contains(0-txnum)) {
+           locks.get(blk).remove((Integer) txnum);
+       } else {
+           locks.remove(blk);
+           notifyAll();
+       }
+   }
+
+   private boolean olderTxExists(Block blk, int txnum) {
+       for (Integer existingTxnum: locks.get(blk)) {
+           if (Math.abs(existingTxnum) < txnum)
+               return true;
+       }
+       return false;
    }
    
    private boolean hasXlock(Block blk) {
-      return getLockVal(blk) < 0;
+       if (locks.get(blk) == null)
+           return false;
+       for (Integer existingTxnum: locks.get(blk)) {
+           if (existingTxnum < 0)
+           return true;
+       }
+        return false;
    }
-   
-   private boolean hasOtherSLocks(Block blk) {
-      return getLockVal(blk) > 1;
-   }
-   
-   private boolean waitingTooLong(long starttime) {
-      return System.currentTimeMillis() - starttime > MAX_TIME;
-   }
-   
-   private int getLockVal(Block blk) {
-      Integer ival = locks.get(blk);
-      return (ival == null) ? 0 : ival.intValue();
-   }
+
+    private boolean hasOtherLocks(Block blk) {
+        return locks.get(blk) != null && locks.get(blk).size() > 1;
+    }
+
+
 }

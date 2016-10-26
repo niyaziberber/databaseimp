@@ -62,7 +62,7 @@ public class Transaction {
     */
    public synchronized void commit() {
       recoveryMgr.commit();
-      concurMgr.release();
+      concurMgr.release(txnum);
       myBuffers.unpinAll();
       activeTx.remove(this);
       System.out.println("transaction " + txnum + " committed");
@@ -77,7 +77,7 @@ public class Transaction {
     */
    public void rollback() {
       recoveryMgr.rollback();
-      concurMgr.release();
+      concurMgr.release(txnum);
       myBuffers.unpinAll();
       System.out.println("transaction " + txnum + " rolled back");
    }
@@ -124,7 +124,7 @@ public class Transaction {
     * @return the integer stored at that offset
     */
    public int getInt(Block blk, int offset) {
-      concurMgr.sLock(blk);
+      concurMgr.sLock(blk, txnum);
       Buffer buff = myBuffers.getBuffer(blk);
       return buff.getInt(offset);
    }
@@ -139,7 +139,7 @@ public class Transaction {
     * @return the string stored at that offset
     */
    public String getString(Block blk, int offset) {
-      concurMgr.sLock(blk);
+      concurMgr.sLock(blk,txnum);
       Buffer buff = myBuffers.getBuffer(blk);
       return buff.getString(offset);
    }
@@ -158,7 +158,7 @@ public class Transaction {
     * @param val the value to be stored
     */
    public void setInt(Block blk, int offset, int val) {
-      concurMgr.xLock(blk);
+      concurMgr.xLock(blk, txnum);
       Buffer buff = myBuffers.getBuffer(blk);
       int lsn = recoveryMgr.setInt(buff, offset, val);
       buff.setInt(offset, val, txnum, lsn);
@@ -178,7 +178,7 @@ public class Transaction {
     * @param val the value to be stored
     */
    public void setString(Block blk, int offset, String val) {
-      concurMgr.xLock(blk);
+      concurMgr.xLock(blk, txnum);
       Buffer buff = myBuffers.getBuffer(blk);
       int lsn = recoveryMgr.setString(buff, offset, val);
       buff.setString(offset, val, txnum, lsn);
@@ -194,7 +194,7 @@ public class Transaction {
     */
    public int size(String filename) {
       Block dummyblk = new Block(filename, END_OF_FILE);
-      concurMgr.sLock(dummyblk);
+      concurMgr.sLock(dummyblk, txnum);
       return SimpleDB.fileMgr().size(filename);
    }
    
@@ -209,7 +209,7 @@ public class Transaction {
     */
    public Block append(String filename, PageFormatter fmtr) {
       Block dummyblk = new Block(filename, END_OF_FILE);
-      concurMgr.xLock(dummyblk);
+      concurMgr.xLock(dummyblk, txnum);
       Block blk = myBuffers.pinNew(filename, fmtr);
       unpin(blk);
       return blk;

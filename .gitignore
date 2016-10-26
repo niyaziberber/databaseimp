@@ -59,3 +59,9 @@ fabric.properties
 hs_err_pid*
 
 .DS_Store
+
+*.xml
+
+SimpleDB/.idea/*
+SimpleDBServer/.idea/*
+SimpleDB/simpledb2.10.iml
