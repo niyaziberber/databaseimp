@@ -43,7 +43,7 @@ public class HW6Test {
 	
 		System.out.println("\nAnd here are the last 5 records");
 		rf.afterLast();
-		for (int i=0; i<5; i++) 
+		for (int i=0; i<5; i++)
 			rf.previous();
 		for (int i=0; i<5; i++) {
 			printCurrentRecord(rf);

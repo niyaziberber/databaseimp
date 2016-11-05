@@ -45,7 +45,14 @@ public class RecordFile {
    public void beforeFirst() {
       moveTo(0);
    }
-   
+
+   /**
+    * Positions the current record so that a call to method previous
+    * will wind up at the last record.
+    */
+   public void afterLast() {
+      moveTo(tx.size(filename)-1);
+   }
    /**
     * Moves to the next record. Returns false if there
     * is no next record.
@@ -59,6 +66,29 @@ public class RecordFile {
             return false;
          moveTo(currentblknum + 1);
       }
+   }
+
+   /**
+    * Moves to the previous record. Returns false if there
+    * is no previous record.
+    * @return false if there is no previous record.
+    */
+   public boolean previous() {
+      while (true) {
+         if (rp.previous())
+            return true;
+         if (atFirstBlock())
+            return false;
+         moveTo(currentblknum - 1);
+      }
+   }
+
+   public void setNull(String fldname) {
+      rp.setNull(fldname);
+   }
+
+   public boolean isNull(String fldname) {
+      return rp.isNull(fldname);
    }
    
    /**
@@ -156,7 +186,11 @@ public class RecordFile {
    private boolean atLastBlock() {
       return currentblknum == tx.size(filename) - 1;
    }
-   
+
+   private boolean atFirstBlock() {
+      return currentblknum == 0;
+   }
+
    private void appendBlock() {
       RecordFormatter fmtr = new RecordFormatter(ti);
       tx.append(filename, fmtr);

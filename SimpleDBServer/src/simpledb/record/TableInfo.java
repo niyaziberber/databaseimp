@@ -11,9 +11,10 @@ import java.util.*;
 public class TableInfo {
    private Schema schema;
    private Map<String,Integer> offsets;
+   public Map<String,Integer> fieldFlagIndex;
    private int recordlen;
    private String tblname;
-   
+
    /**
     * Creates a TableInfo object, given a table name
     * and schema. The constructor calculates the
@@ -25,15 +26,18 @@ public class TableInfo {
    public TableInfo(String tblname, Schema schema) {
       this.schema = schema;
       this.tblname = tblname;
-      offsets  = new HashMap<String,Integer>();
+      offsets  = new TreeMap<>();
+      fieldFlagIndex = new HashMap<>(); // look up table for offsets mapping to flag array index for O(1) look up.
       int pos = 0;
       for (String fldname : schema.fields()) {
          offsets.put(fldname, pos);
+         int curIndex = offsets.size();
+         fieldFlagIndex.put(fldname, curIndex);
          pos += lengthInBytes(fldname);
       }
       recordlen = pos;
    }
-   
+
    /**
     * Creates a TableInfo object from the 
     * specified metadata.
@@ -44,11 +48,17 @@ public class TableInfo {
     * @param offsets the already-calculated offsets of the fields within a record
     * @param recordlen the already-calculated length of each record
     */
-   public TableInfo(String tblname, Schema schema, Map<String,Integer> offsets, int recordlen) {
+   public TableInfo(String tblname, Schema schema, Map<String,Integer> offsets, int recordlen, Map<String, Integer> fieldFlagIndex) {
       this.tblname   = tblname;
       this.schema    = schema;
       this.offsets   = offsets;
       this.recordlen = recordlen;
+      this.fieldFlagIndex = fieldFlagIndex;
+   }
+
+   public int bitPosition(String fldname) {
+      Integer flagIndex = fieldFlagIndex.get(fldname);
+      return flagIndex == null ? -1 : flagIndex;
    }
    
    /**

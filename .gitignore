@@ -9,6 +9,9 @@
 .idea/jsLibraryMappings.xml
 .idea/*
 SimpleDBClients/.idea/workspace.xml
+SimpleDBClients/out/
+SimpleDBServer/out/
+*.iml
 
 # Sensitive or high-churn files:
 .idea/dataSources.ids
@@ -17,6 +20,11 @@ SimpleDBClients/.idea/workspace.xml
 .idea/sqlDataSources.xml
 .idea/dynamic.xml
 .idea/uiDesigner.xml
+SimpleDBServer/src/.classpath
+SimpleDBServer/src/.project
+SimpleDBServer/src/.settings/
+SimpleDBServer/src/Using SimpleDB with Eclipse.pdf
+SimpleDBServer/src/javadoc/
 
 # Gradle:
 .idea/gradle.xml
