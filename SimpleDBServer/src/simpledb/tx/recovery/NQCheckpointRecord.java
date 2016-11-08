@@ -36,7 +36,6 @@ class NQCheckpointRecord implements LogRecord {
     public int writeToLog() {
         String writableList = stringfyList(activeTx);
         Object[] rec = new Object[] {NQCHECKPOINT, writableList};
-        System.out.println("NQ CHECKPOINT: Transactions " + writableList + " are still active.");
         return logMgr.append(rec);
     }
 
