@@ -83,10 +83,10 @@ public class TableScan implements UpdateScan {
     * @see simpledb.query.UpdateScan#setVal(java.lang.String, simpledb.query.Constant)
     */ 
    public void setVal(String fldname, Constant val) {
-      if (sch.type(fldname) == INTEGER)
-         rf.setInt(fldname, (Integer)val.asJavaVal());
-      else if (sch.type(fldname) == NULL)
+      if (val instanceof NullConstant)
          rf.setNull(fldname);
+      else if (sch.type(fldname) == INTEGER)
+         rf.setInt(fldname, (Integer)val.asJavaVal());
       else
          rf.setString(fldname, (String)val.asJavaVal());
    }
