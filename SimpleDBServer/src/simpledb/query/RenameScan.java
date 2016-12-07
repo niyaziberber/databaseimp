@@ -1,55 +1,55 @@
 package simpledb.query;
 
-/**
- * Created by brylee on 11/6/16.
- */
 public class RenameScan implements Scan {
     private Scan s;
-    private String oldField;
-    private String newField;
+    private String oldfldname, newfldname;
 
-    public RenameScan(Scan s, String oldField, String newField) {
+    public RenameScan(Scan s, String oldfldname, String newfldname) {
         this.s = s;
-        this.oldField = oldField;
-        this.newField = newField;
+        this.oldfldname = oldfldname;
+        this.newfldname = newfldname;
     }
 
-    @Override
     public void beforeFirst() {
         s.beforeFirst();
     }
 
-    @Override
     public boolean next() {
         return s.next();
     }
 
-    @Override
     public void close() {
         s.close();
     }
 
-    private String getField(String field) {
-        return field.equals(newField) ? oldField : field;
-    }
-
-    @Override
     public Constant getVal(String fldname) {
-        return s.getVal(getField(fldname));
+        if (fldname.equals(newfldname))
+            return s.getVal(oldfldname);
+        else
+            return s.getVal(fldname);
     }
 
-    @Override
     public int getInt(String fldname) {
-        return s.getInt(getField(fldname));
+        if (fldname.equals(newfldname))
+            return s.getInt(oldfldname);
+        else
+            return s.getInt(fldname);
     }
 
-    @Override
     public String getString(String fldname) {
-        return s.getString(getField(fldname));
+        if (fldname.equals(newfldname))
+            return s.getString(oldfldname);
+        else
+            return s.getString(fldname);
     }
 
-    @Override
     public boolean hasField(String fldname) {
-        return s.hasField(getField(fldname));
+        if (fldname.equals(oldfldname))
+            return false;
+        else if (fldname.equals(newfldname))
+            return true;
+        else
+            return s.hasField(fldname);
     }
 }
+

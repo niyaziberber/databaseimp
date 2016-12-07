@@ -2,47 +2,46 @@ package simpledb.query;
 
 import simpledb.record.Schema;
 
-/**
- * Created by brylee on 11/6/16.
- */
 public class RenamePlan implements Plan {
     private Plan p;
-    private String oldField;
-    private String newField;
+    private String oldfldname, newfldname;
+    private Schema schema = new Schema();
 
-    public RenamePlan(Plan p, String oldField, String newField) {
+    public RenamePlan(Plan p, String oldfldname, String newfldname) {
         this.p = p;
-        this.oldField = oldField;
-        this.newField = newField;
+        this.oldfldname = oldfldname;
+        this.newfldname = newfldname;
+        Schema oldschema = p.schema();
+        for (String fldname : oldschema.fields())
+            if (!fldname.equals(oldfldname))
+                schema.add(fldname, oldschema);
+        int fldtype = oldschema.type(oldfldname);
+        int fldlen  = oldschema.length(oldfldname);
+        schema.addField(newfldname, fldtype, fldlen);
     }
 
-    @Override
     public Scan open() {
         Scan s = p.open();
-        return new RenameScan(s, oldField, newField);
+        return new RenameScan(s, oldfldname, newfldname);
     }
 
-    @Override
     public int blocksAccessed() {
         return p.blocksAccessed();
     }
 
-    @Override
     public int recordsOutput() {
         return p.recordsOutput();
     }
 
-    @Override
     public int distinctValues(String fldname) {
-        return p.distinctValues(getField(fldname));
+        if (fldname.equals(newfldname))
+            return p.distinctValues(oldfldname);
+        else
+            return p.distinctValues(fldname);
     }
 
-    @Override
     public Schema schema() {
-        return p.schema();
-    }
-
-    private String getField(String field) {
-        return field.equals(newField) ? oldField : field;
+        return schema;
     }
 }
+
