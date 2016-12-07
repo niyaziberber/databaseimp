@@ -5,7 +5,7 @@ import simpledb.record.TableInfo;
 import simpledb.query.*;
 
 /** 
- * The Scan class for the muti-buffer version of the
+ * The Scan class for the multi-buffer version of the
  * <i>product</i> operator.
  * @author Edward Sciore
  */

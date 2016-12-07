@@ -96,8 +96,7 @@ public class TableMgr {
       
       RecordFile fcatfile = new RecordFile(fcatInfo, tx);
       Schema sch = new Schema();
-      Map<String,Integer> offsets = new TreeMap<String,Integer>();
-      Map<String,Integer> fieldFlagIndex = new HashMap<>();
+      Map<String,Integer> offsets = new HashMap<String,Integer>();
       while (fcatfile.next())
          if (fcatfile.getString("tblname").equals(tblname)) {
          String fldname = fcatfile.getString("fldname");
@@ -105,10 +104,9 @@ public class TableMgr {
          int fldlen     = fcatfile.getInt("length");
          int offset     = fcatfile.getInt("offset");
          offsets.put(fldname, offset);
-         fieldFlagIndex.put(fldname, offsets.size());
          sch.addField(fldname, fldtype, fldlen);
       }
       fcatfile.close();
-      return new TableInfo(tblname, sch, offsets, reclen, fieldFlagIndex);
+      return new TableInfo(tblname, sch, offsets, reclen);
    }
 }

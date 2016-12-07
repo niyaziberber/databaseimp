@@ -1,98 +1,54 @@
 package simpledb.tx.recovery;
 
-import simpledb.log.BasicLogRecord;
-import simpledb.tx.Transaction;
-
+import simpledb.log.*;
 import java.util.*;
 
-/**
- * The NQCHECKPOINT log record.
- * @author Edward Sciore
- */
-class NQCheckpointRecord implements LogRecord {
-    private List<Integer> activeTx = new ArrayList<>();
-    /**
-     * Creates a nonquiescent checkpoint record.
-     */
-    public NQCheckpointRecord(List<Transaction> tx) {
-        for (Transaction t : tx) {
-            activeTx.add(Integer.valueOf(t.toString()));
-        }
-    }
+// New for HW4
 
-    /**
-     * Creates a log record by reading string encoded integer list
-     * from the basic log record.
-     * @param rec the basic log record
-     */
-    public NQCheckpointRecord(BasicLogRecord rec) { this.activeTx = listfyString(rec.nextString());}
-
-    /**
-     * Writes a checkpoint record to the log.
-     * This log record contains the NQCHECKPOINT operator,
-     * and the set of active transactions encoded in String.
-     * @return the LSN of the last log value
-     */
-    public int writeToLog() {
-        String writableList = stringfyList(activeTx);
-        Object[] rec = new Object[] {NQCHECKPOINT, writableList};
-        return logMgr.append(rec);
-    }
-
-    /**
-     * encodes a list into a string with " " delimiter.
-     * Used for logging purpose as it only takes String or Integer.
-     * @param tx
-     * @return
-     */
-    private String stringfyList(List<Integer> tx) {
-        String s = "";
-        for (int i = 0; i < tx.size()-1; i++) {
-            s += tx.get(i)+" ";
-        }
-        if (tx.size() > 0)
-            s+=(tx.get(tx.size()-1));
-        return s;
-    }
-
-    /**
-     * decodes string delimited by space (" ") into an integer list.
-     * @param s encoded String
-     * @return decoded List
-     */
-    private List<Integer> listfyString(String s) {
-        List<String> ls =  Arrays.asList(s.split(" "));
-        List<Integer> li = new ArrayList<>();
-        for (String ss : ls) {
-            if (!ss.equals(""))
-                li.add(Integer.valueOf(ss));
-        }
-        return li;
-    }
-
-    public int op() {
-        return NQCHECKPOINT;
-    }
-
-    /**
-     * Checkpoint records have no associated transaction,
-     * and so the method returns a "dummy", negative txid.
-     */
-    public int txNumber() {
-        return -1; // dummy value
-    }
-
-    /**
-     * Does nothing, because a checkpoint record
-     * contains no undo information.
-     */
-    public void undo(int txnum) {}
-
-    public String toString() {
-        return "<NQCHECKPOINT " + stringfyList(activeTx) + ">";
-    }
-
-    public List<Integer> getActiveTx() {
-        return activeTx;
-    }
+public class NQCheckpointRecord implements LogRecord {
+   private Collection<Integer> txs = new ArrayList<Integer>();
+   
+   public int writeToLog() {
+      int size = txs.size();
+      Object[] rec = new Object[size+2];
+      rec[0] = NQCKPT;
+      rec[1] = size;
+      int count = 0;
+      for (Integer txid : txs) {
+         rec[count+2] = txid;
+         count++;
+      }
+      return logMgr.append(rec);
+   }
+   
+   public NQCheckpointRecord(Collection<Integer> txs) {
+      this.txs = txs;
+   }
+   
+   public NQCheckpointRecord(BasicLogRecord rec) {
+      int size = rec.nextInt();
+      for (int i=0; i<size; i++)
+         txs.add(new Integer(rec.nextInt()));
+   }
+   
+   public Collection<Integer> txs() {
+      return txs;
+   }
+   
+   public int op() {
+      return LogRecord.NQCKPT;
+   }
+   
+   public int txNumber() {
+      return -1; // dummy value
+   }
+   
+   public void undo(int txnum) {}
+   
+   public String toString() {
+      String result = "<NQCHECKPOINT ";
+      for (Integer i : txs)
+         result += i + " ";
+      return result + ">";
+   }
 }

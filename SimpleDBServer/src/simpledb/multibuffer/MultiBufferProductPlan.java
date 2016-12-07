@@ -7,7 +7,7 @@ import simpledb.materialize.*;
 import simpledb.query.*;
 
 /**
- * The Plan class for the muti-buffer version of the
+ * The Plan class for the multi-buffer version of the
  * <i>product</i> operator.
  * @author Edward Sciore
  */
@@ -31,8 +31,11 @@ public class MultiBufferProductPlan implements Plan {
    }
    
    /**
+    * <BUG FIX: The textbook says to materialize the RHS query, but this is
+    *           inappropriate for left-deep query trees. It is better to
+    *           materialize the LHS query.>  
     * A scan for this query is created and returned, as follows.
-    * First, the method materializes its RHS query.
+    * First, the method materializes its LHS query.
     * It then determines the optimal chunk size,
     * based on the size of the materialized file and the
     * number of available buffers.
@@ -42,10 +45,10 @@ public class MultiBufferProductPlan implements Plan {
     * @see simpledb.query.Plan#open()
     */
    public Scan open() {
-      TempTable tt = copyRecordsFrom(rhs);
+      TempTable tt = copyRecordsFrom(lhs);
       TableInfo ti = tt.getTableInfo();
-      Scan leftscan = lhs.open();
-      return new MultiBufferProductScan(leftscan, ti, tx);
+      Scan rightscan = rhs.open();
+      return new MultiBufferProductScan(rightscan, ti, tx);
    }
    
    /**

@@ -1,9 +1,6 @@
 package simpledb.query;
 
 import static java.sql.Types.INTEGER;
-import static java.sql.Types.NULL;
-import static java.sql.Types.VARCHAR;
-
 import simpledb.tx.Transaction;
 import simpledb.record.*;
 
@@ -52,13 +49,13 @@ public class TableScan implements UpdateScan {
     * @see simpledb.query.Scan#getVal(java.lang.String)
     */
    public Constant getVal(String fldname) {
-      if (rf.isNull(fldname))
-         return new NullConstant();
-      else if (sch.type(fldname) == INTEGER)
-         return new IntConstant(rf.getInt(fldname));
-      else if (sch.type(fldname) == VARCHAR)
-         return new StringConstant(rf.getString(fldname));
-      else return null;
+	   // added for hw 8
+	   if (rf.isNull(fldname))
+		   return new NullConstant();
+	   else if (sch.type(fldname) == INTEGER)
+		   return new IntConstant(rf.getInt(fldname));
+	   else
+		   return new StringConstant(rf.getString(fldname));
    }
    
    public int getInt(String fldname) {
@@ -83,12 +80,13 @@ public class TableScan implements UpdateScan {
     * @see simpledb.query.UpdateScan#setVal(java.lang.String, simpledb.query.Constant)
     */ 
    public void setVal(String fldname, Constant val) {
-      if (val instanceof NullConstant)
-         rf.setNull(fldname);
-      else if (sch.type(fldname) == INTEGER)
-         rf.setInt(fldname, (Integer)val.asJavaVal());
-      else
-         rf.setString(fldname, (String)val.asJavaVal());
+	   // added for hw8
+	   if (val instanceof NullConstant)
+		   rf.setNull(fldname);
+	   else if (sch.type(fldname) == INTEGER)
+		   rf.setInt(fldname, (Integer)val.asJavaVal());
+	   else
+		   rf.setString(fldname, (String)val.asJavaVal());
    }
    
    public void setInt(String fldname, int val) {

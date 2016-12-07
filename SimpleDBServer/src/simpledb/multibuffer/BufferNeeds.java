@@ -15,11 +15,12 @@ public class BufferNeeds {
     * of the specified output size (in blocks),
     * and returns the highest root that is less than
     * the number of available buffers.
+    * <BUG FIX: We reserve a couple of buffers so that we don't run completely out.>
     * @param size the size of the output file
     * @return the highest number less than the number of available buffers, that is a root of the plan's output size
     */
    public static int bestRoot(int size) {
-      int avail = SimpleDB.bufferMgr().available();
+      int avail = SimpleDB.bufferMgr().available() - 2; //reserve a couple
       if (avail <= 1)
          return 1;
       int k = Integer.MAX_VALUE;
@@ -36,11 +37,12 @@ public class BufferNeeds {
     * of the specified output size (in blocks),
     * and returns the highest factor that is less than
     * the number of available buffers.
+    * <BUG FIX: We reserve a couple of buffers so that we don't run completely out.>
     * @param size the size of the output file
     * @return the highest number less than the number of available buffers, that is a factor of the plan's output size
     */
    public static int bestFactor(int size) {
-      int avail = SimpleDB.bufferMgr().available();
+      int avail = SimpleDB.bufferMgr().available() - 2;  //reserve a couple 
       if (avail <= 1)
          return 1;
       int k = size;

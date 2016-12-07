@@ -1,24 +1,25 @@
 package simpledb.query;
 
-import java.io.*;
-import java.util.*;
-import java.text.*;
-import java.math.*;
-import java.util.regex.*;
-
-/**
- * Created by brylee on 11/21/16.
- */
 public class NullConstant implements Constant {
-    public String toString() {
-        return "null";
-    }
 
-    public Object asJavaVal() {
-        return null;
-    }
+	public Object asJavaVal() {
+		return null;
+	}
 
-    public int compareTo(Constant o) {
-        return 0;
-    }
+	public boolean equals(Object obj) {
+		return false;
+	}
+
+	// This method should never be cqlled.
+	public int compareTo(Constant c) {
+		return -1;
+	}
+
+	public int hashCode() {
+		return 0;
+	}
+
+	public String toString() {
+		return "null";
+	}
 }

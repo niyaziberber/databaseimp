@@ -16,7 +16,7 @@ public class RecordPage {
    private Transaction tx;
    private int slotsize;
    private int currentslot = -1;
-
+   
    /** Creates the record manager for the specified block.
      * The current record is set to be prior to the first one.
      * @param blk a reference to the disk block
@@ -29,15 +29,15 @@ public class RecordPage {
       this.tx = tx;
       slotsize = ti.recordLength() + INT_SIZE;
       tx.pin(blk);
-  }
+   }
    
    /**
     * Closes the manager, by unpinning the block.
     */
    public void close() {
       if (blk != null) {
-    	  tx.unpin(blk);
-    	  blk = null;
+         tx.unpin(blk);
+         blk = null;
       }
    }
    
@@ -46,18 +46,10 @@ public class RecordPage {
     * @return false if there is no next record.
     */
    public boolean next() {
-       return searchFor(INUSE);
+      return searchFor(INUSE);
    }
-
-    /**
-     * Moves to the next record in the block.
-     * @return false if there is no next record.
-     */
-    public boolean previous() {
-        return searchForBackward(INUSE);
-    }
-
-    /**
+   
+   /**
     * Returns the integer value stored for the
     * specified field of the current record.
     * @param fldname the name of the field.
@@ -86,9 +78,9 @@ public class RecordPage {
     * @param val the integer value stored in that field
     */
    public void setInt(String fldname, int val) {
-       int position = fieldpos(fldname);
-       setNotNull(fldname);
-       tx.setInt(blk, position, val);
+      int position = fieldpos(fldname);
+      tx.setInt(blk, position, val);
+      setNotNull(fldname); // added for HW 6
    }
    
    /**
@@ -98,25 +90,10 @@ public class RecordPage {
     * @param val the string value stored in that field
     */
    public void setString(String fldname, String val) {
-       int position = fieldpos(fldname);
-       setNotNull(fldname);
-       tx.setString(blk, position, val);
+      int position = fieldpos(fldname);
+      tx.setString(blk, position, val);
+      setNotNull(fldname); // added for HW 6
    }
-
-    public void setNull(String fldname) {
-        int fieldFlagIndex = ti.bitPosition(fldname);
-        tx.setInt(blk, currentpos(), setBitVal(getFlagsAt(currentpos()), fieldFlagIndex, 1));
-    }
-
-    public void setNotNull(String fldname) {
-        int fieldFlagIndex = ti.bitPosition(fldname);
-        tx.setInt(blk, currentpos(), setBitVal(getFlagsAt(currentpos()), fieldFlagIndex, 0));
-    }
-
-    public boolean isNull(String fldname) {
-        Integer fieldFlagIndex = ti.bitPosition(fldname);
-        return getBitVal(getFlagsAt(currentpos()), fieldFlagIndex) == 1;
-    }
    
    /**
     * Deletes the current record.
@@ -126,7 +103,7 @@ public class RecordPage {
     */
    public void delete() {
       int position = currentpos();
-      tx.setInt(blk, position, setBitVal(Integer.MAX_VALUE, 0, 0));
+      tx.setInt(blk, position, EMPTY); 
    }
    
    /**
@@ -139,7 +116,7 @@ public class RecordPage {
       boolean found = searchFor(EMPTY);
       if (found) {
          int position = currentpos();
-         tx.setInt(blk, position, Integer.MAX_VALUE);
+         tx.setInt(blk, position, INUSE);  // HW 6: Also sets all fields to null
       }
       return found;
    }
@@ -171,48 +148,71 @@ public class RecordPage {
    }
    
    private boolean isValidSlot() {
-      return currentpos() + slotsize <= BLOCK_SIZE && currentpos() >= 0;
+      return currentpos() + slotsize <= BLOCK_SIZE;
    }
-
-    private boolean searchForBackward(int flag) {
-        if (currentslot == -1)
-            currentslot = BLOCK_SIZE / slotsize;
-        currentslot--;
-        while (isValidSlot()) {
-            int position = currentpos();
-            int flags = tx.getInt(blk, position);
-            if (getBitVal(flags, 0) == flag)
-                return true;
-            currentslot--;
-        }
-        return false;
-    }
-
+   
    private boolean searchFor(int flag) {
       currentslot++;
       while (isValidSlot()) {
          int position = currentpos();
-          int flags = tx.getInt(blk, position);
-         if (getBitVal(flags, 0) == flag)
+         if (getBitVal(tx.getInt(blk, position), 0) == flag) // modified for HW 6
             return true;
          currentslot++;
       }
       return false;
    }
-
-   private int getFlagsAt(int position) {
-       return tx.getInt(blk, position);
+   
+   // Added for HW 6
+   public boolean previous() {
+      currentslot--;
+      while (currentslot >= 0) {
+         int position = currentpos();
+         if (getBitVal(tx.getInt(blk, position), 0) == INUSE) // modified for HW 6
+            return true;
+         currentslot--;
+      }
+      return false;
    }
-
-    private int getBitVal(int n, int pos) {
-        return (n >> pos) % 2;
-    }
-
-    private int setBitVal(int n, int pos, int val) {
-        int mask = (1 << pos);
-        if (val == 0)
-            return n & ~mask;
-        else
-            return n | mask;
-    }
+   
+   // Added for HW 6
+   public void afterLast() {
+      currentslot = BLOCK_SIZE / slotsize;
+   }
+   
+   // Added for HW 6
+   public boolean isNull(String fldname) {
+      int pos = ti.bitPosition(fldname);
+      int flag = tx.getInt(blk, currentpos());
+      return getBitVal(flag, pos) == 0;
+   }
+   
+   // Added for HW 6
+   public void setNull(String fldname) {
+      int pos = ti.bitPosition(fldname);
+      int flag = tx.getInt(blk, currentpos());
+      int newflag = setBitVal(flag, pos, 0);
+      tx.setInt(blk, currentpos(), newflag);
+   }
+   
+   // Added for HW 6
+   private void setNotNull(String fldname) {
+      int pos = ti.bitPosition(fldname);
+      int flag = tx.getInt(blk, currentpos());
+      int newflag = setBitVal(flag, pos, 1);
+      tx.setInt(blk, currentpos(), newflag);
+   }
+   
+   // Added for HW 6
+   private int getBitVal(int n, int pos) {
+      return (n >> pos) % 2;
+   }
+   
+   // Added for HW 6
+   private int setBitVal(int n, int pos, int val) {
+      int mask = (1 << pos); 
+      if (val == 0)
+         return n & ~mask;
+      else
+         return n | mask;
+   }
 }

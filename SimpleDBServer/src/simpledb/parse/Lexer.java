@@ -3,6 +3,8 @@ package simpledb.parse;
 import java.util.*;
 import java.io.*;
 
+// keywords are modified for hw 8
+
 /**
  * The lexical analyzer.
  * @author Edward Sciore
@@ -50,7 +52,7 @@ public class Lexer {
    public boolean matchStringConstant() {
       return '\'' == (char)tok.ttype;
    }
-
+   
    /**
     * Returns true if the current token is the specified keyword.
     * @param w the keyword string
@@ -109,7 +111,7 @@ public class Lexer {
       nextToken();
       return s;
    }
-
+   
    /**
     * Throws an exception if the current token is not the
     * specified keyword. 
@@ -149,6 +151,8 @@ public class Lexer {
    private void initKeywords() {
       keywords = Arrays.asList("select", "from", "where", "and",
                                "insert", "into", "values", "delete", "update", "set", 
-                               "create", "table", "int", "varchar", "view", "as", "index", "on", "is", "null");
+                               "create", "table", "int", "varchar", "view", "as", "index", "on",
+                        	   // added two new keywords for hw 8
+                              "is", "null");
    }
 }

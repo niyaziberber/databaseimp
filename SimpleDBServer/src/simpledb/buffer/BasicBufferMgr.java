@@ -1,152 +1,94 @@
 package simpledb.buffer;
 
 import simpledb.file.*;
+import java.util.*;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Queue;
+// Most everything is modified for HW3
+// Note that the unpinned queue will contain a pinned
+// buffer when an existing unpinned block is pinned.
 
-/**
- * Manages the pinning and unpinning of buffers to blocks.
- * @author Edward Sciore
- *
- */
 class BasicBufferMgr {
-   private Queue<Buffer> availableBuffers = new LinkedList<>();
-   private Map<Block, Buffer> bufferMap = new HashMap<>();
-   private Buffer[] bufferpool;
+   private Map<Block,Buffer>allocated = new HashMap<Block,Buffer>();
+   private Queue<Buffer>     unpinned = new LinkedList<Buffer>();
+   private int numAvailable;
    
-   /**
-    * Creates a buffer manager having the specified number 
-    * of buffer slots.
-    * This constructor depends on both the {@link FileMgr} and
-    * {@link simpledb.log.LogMgr LogMgr} objects 
-    * that it gets from the class
-    * {@link simpledb.server.SimpleDB}.
-    * Those objects are created during system initialization.
-    * Thus this constructor cannot be called until 
-    * {@link simpledb.server.SimpleDB#initFileAndLogMgr(String)} or
-    * is called first.
-    * @param numbuffs the number of buffer slots to allocate
-    */
    BasicBufferMgr(int numbuffs) {
-      bufferpool = new Buffer[numbuffs];
-      for (int i=0; i<numbuffs; i++) {
-         bufferpool[i] = new Buffer(i);
-         availableBuffers.add(bufferpool[i]);
-      }
+   		numAvailable = numbuffs;
+      for (int i=0; i<numbuffs; i++)
+         unpinned.add(new Buffer(i));
    }
    
-   /**
-    * Flushes the dirty buffers modified by the specified transaction.
-    * @param txnum the transaction's id number
-    */
    synchronized void flushAll(int txnum) {
-      for (Buffer buff : bufferpool)
+      for (Buffer buff : allocated.values())
          if (buff.isModifiedBy(txnum))
-            buff.flush();
+             buff.flush();
    }
-   
-   /**
-    * Pins a buffer to the specified block. 
-    * If there is already a buffer assigned to that block
-    * then that buffer is used;  
-    * otherwise, an unpinned buffer from the pool is chosen.
-    * Returns a null value if there are no available buffers.
-    * @param blk a reference to a disk block
-    * @return the pinned buffer
-    */
+
    synchronized Buffer pin(Block blk) {
       Buffer buff = findExistingBuffer(blk);
       if (buff == null) {
          buff = chooseUnpinnedBuffer();
          if (buff == null)
             return null;
-         if (buff.block() != null)
-            bufferMap.remove(buff.block());
          buff.assignToBlock(blk);
-         bufferMap.put(blk, buff);
+         allocated.put(blk, buff);  //add to the allocated map
       }
+      if (!buff.isPinned())
+         numAvailable--;
       buff.pin();
       return buff;
    }
    
-   /**
-    * Allocates a new block in the specified file, and
-    * pins a buffer to it. 
-    * Returns null (without allocating the block) if 
-    * there are no available buffers.
-    * @param filename the name of the file
-    * @param fmtr a pageformatter object, used to format the new block
-    * @return the pinned buffer
-    */
    synchronized Buffer pinNew(String filename, PageFormatter fmtr) {
       Buffer buff = chooseUnpinnedBuffer();
       if (buff == null)
          return null;
-      if (buff.block() != null)
-         bufferMap.remove(buff.block());
       buff.assignToNew(filename, fmtr);
-      bufferMap.put(buff.block(), buff);
+      allocated.put(buff.block(), buff);  // add to the allocated map
+      if (!buff.isPinned())
+         numAvailable--;
       buff.pin();
       return buff;
    }
-   
-   /**
-    * Unpins the specified buffer.
-    * @param buff the buffer to be unpinned
-    */
+ 
    synchronized void unpin(Buffer buff) {
       buff.unpin();
       if (!buff.isPinned()) {
-         availableBuffers.add(buff);
+         numAvailable ++;
+         unpinned.add(buff);  // add to the end of the queue
       }
    }
    
-   /**
-    * Returns the number of available (i.e. unpinned) buffers.
-    * @return the number of available buffers
-    */
    int available() {
-      return availableBuffers.size();
+      return numAvailable;
    }
    
    private Buffer findExistingBuffer(Block blk) {
-      Buffer b;
-      if ((b = bufferMap.get(blk)) != null) {
-         return b;
-      }
-      return null;
+      return allocated.get(blk);
    }
-
-   /**
-    * chooses unpinned buffer from the queue.
-    * Checks for isPinned because there can be a case
-    * where the buffer in the queue becomes pinned
-    * Case:: If there is already a buffer assigned
-    *        to a block then that buffer is used. This
-    *        buffer is allocated but unpinned, meaning
-    *        it is in the unpinned queue. Since elements
-    *        in the queue cannot be manipulated, this
-    *        check is necessary.
-    * @return unpinned buffer
-    */
+   
    private Buffer chooseUnpinnedBuffer() {
-      Buffer b;
-      while ((b = availableBuffers.poll()) != null) {
-         if (!b.isPinned())
-            return b;
-      }
-      return null;
+   		while (!unpinned.isEmpty()) {
+   			Buffer buff = unpinned.remove();
+   			if (!buff.isPinned()) {
+   				allocated.remove(buff.block());	
+   				return buff;
+   			}
+   		}
+   		return null;
    }
-
+   
+   // print buffers in ascending order
    public String toString() {
-      String s = "";
-      for (int i = 0; i < bufferpool.length-1; i++) {
-         s += bufferpool[i].toString() + "\n";
-      }
-      s += bufferpool[bufferpool.length-1].toString();
-      return s;
+      String result = "";
+      List<Buffer> buffs = new ArrayList<Buffer>(allocated.values());
+      Collections.sort(buffs, new Comparator<Buffer>() {
+      				public int compare(Buffer b1, Buffer b2) {
+      					return b1.toString().compareTo(b2.toString());
+      				}
+      			} );
+      for (Buffer buff : buffs)
+         result += buff.toString() + "\n";
+      return result + "============";
    }
 }

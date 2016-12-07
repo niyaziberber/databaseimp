@@ -47,7 +47,7 @@ public class FileMgr {
       // remove any leftover temporary tables
       for (String filename : dbDirectory.list())
          if (filename.startsWith("temp"))
-         new File(dbDirectory, filename).delete();
+         		new File(dbDirectory, filename).delete();
    }
 
    /**

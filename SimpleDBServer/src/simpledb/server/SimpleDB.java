@@ -6,8 +6,8 @@ import simpledb.tx.Transaction;
 import simpledb.log.LogMgr;
 import simpledb.metadata.MetadataMgr;
 import simpledb.planner.*;
-import simpledb.opt.HeuristicQueryPlanner;
-import simpledb.index.planner.IndexUpdatePlanner;
+import simpledb.opt.HeuristicQueryPlanner; // in case we use the heuristic planner
+import simpledb.index.planner.IndexUpdatePlanner; // in case we use the index update planner
 
 /**
  * The class that provides system-wide static global values.
@@ -99,7 +99,8 @@ public class SimpleDB {
     * Creates a planner for SQL commands.
     * To change how the planner works, modify this method.
     * @return the system's planner for SQL commands
-    */public static Planner planner() {
+    */
+   public static Planner planner() {
       QueryPlanner  qplanner = new BasicQueryPlanner();
       UpdatePlanner uplanner = new BasicUpdatePlanner();
       return new Planner(qplanner, uplanner);
