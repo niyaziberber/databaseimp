@@ -103,7 +103,11 @@ public class MultiBufferProductScan implements Scan {
    public boolean hasField(String fldname) {
       return prodscan.hasField(fldname);
    }
-   
+
+   public boolean isNull(String fldname) {
+      return prodscan.isNull(fldname);
+   }
+
    private boolean useNextChunk() {
       if (rhsscan != null)
          rhsscan.close();

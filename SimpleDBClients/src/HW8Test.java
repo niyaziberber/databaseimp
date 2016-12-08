@@ -6,6 +6,10 @@ import simpledb.record.*;
 import simpledb.server.SimpleDB;
 import simpledb.tx.Transaction;
 
+import javax.management.Query;
+import java.util.ArrayList;
+import java.util.List;
+
 
 public class HW8Test {
 	public static void main(String[] args) {
@@ -105,9 +109,11 @@ public class HW8Test {
 		// the parser converts them to lower case
 		String qry = "select A from " + t + " where B is null and A < 30";
 		Parser p = new Parser(qry);
-		QueryData data = p.query();
+		QueryData data = p.basicQuery();
+		List<QueryData> d = new ArrayList<>();
+		d.add(data);
 		QueryPlanner qp = new BasicQueryPlanner();
-		Plan plan = qp.createPlan(data, tx);
+		Plan plan = qp.createPlan(d, tx);
 		Scan s = plan.open();
 		while (s.next())
 			System.out.println(s.getInt("a"));  // lower case!

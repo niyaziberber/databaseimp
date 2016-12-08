@@ -57,9 +57,9 @@ public class HW9Test {
 
     private static void query1(String t, Transaction tx) {
         System.out.println("Here are the records having an A-value ending in 77, 88, or 99");
-        String qry = "select A,B,C from " + t + " where B = 'b77' "
-                + "union select A,B,C from " + t + " where b = 'b88' "
-                + "union select A,B,C from " + t + " where b = 'b99' ";
+        String qry = "select A as X,B as Y,C as Z from " + t + " where B = 'b77' "
+                + "union select A as X,B as Y,C as Z from " + t + " where b = 'b88' "
+                + "union select A as X,B as Y,C as Z from " + t + " where b = 'b99' ";
         Planner plnr = SimpleDB.planner();
         Plan plan = plnr.createQueryPlan(qry, tx);
         Scan s = plan.open();
@@ -80,16 +80,16 @@ public class HW9Test {
     }
 
     private static String getInt(Scan s, String fldname) {
-        //if (s.isNull(fldname))
-        //    return "null";
-//        else
+        if (s.isNull(fldname))
+            return "null";
+        else
             return "" + s.getInt(fldname);
     }
 
     private static String getString(Scan s, String fldname) {
-//        if (s.isNull(fldname))
-//            return "null";
-//        else
+        if (s.isNull(fldname))
+            return "null";
+        else
             return "" + s.getString(fldname);
     }
 }

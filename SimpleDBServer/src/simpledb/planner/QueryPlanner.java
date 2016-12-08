@@ -4,6 +4,8 @@ import simpledb.tx.Transaction;
 import simpledb.query.Plan;
 import simpledb.parse.QueryData;
 
+import java.util.List;
+
 /**
  * The interface implemented by planners for 
  * the SQL select statement.
@@ -18,5 +20,5 @@ public interface QueryPlanner {
     * @param tx the calling transaction
     * @return a plan for that query
     */
-   public Plan createPlan(QueryData data, Transaction tx);
+   public Plan createPlan(List<QueryData> data, Transaction tx);
 }

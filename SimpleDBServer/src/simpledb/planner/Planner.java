@@ -4,6 +4,8 @@ import simpledb.tx.Transaction;
 import simpledb.parse.*;
 import simpledb.query.*;
 
+import java.util.List;
+
 /**
  * The object that executes SQL statements.
  * @author sciore
@@ -11,7 +13,7 @@ import simpledb.query.*;
 public class Planner {
    private QueryPlanner qplanner;
    private UpdatePlanner uplanner;
-   
+
    public Planner(QueryPlanner qplanner, UpdatePlanner uplanner) {
       this.qplanner = qplanner;
       this.uplanner = uplanner;
@@ -25,7 +27,7 @@ public class Planner {
     */
    public Plan createQueryPlan(String qry, Transaction tx) {
       Parser parser = new Parser(qry);
-      QueryData data = parser.query();
+      List<QueryData> data = parser.query();
       return qplanner.createPlan(data, tx);
    }
    

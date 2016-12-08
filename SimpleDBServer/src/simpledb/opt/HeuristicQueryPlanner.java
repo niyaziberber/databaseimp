@@ -13,7 +13,26 @@ import java.util.*;
  */
 public class HeuristicQueryPlanner implements QueryPlanner {
    private Collection<TablePlanner> tableplanners = new ArrayList<TablePlanner>();
-   
+
+   /**
+    * Creates plan based on list of QueryData.
+    * If there are multiple QueryData (>1) then it will generate
+    * UnionPlan of all subsequent plans.
+    * @param data the parsed representation of the query
+    * @param tx the calling transaction
+    * @return plan of all QueryData
+    */
+   public Plan createPlan(List<QueryData> data, Transaction tx) {
+      QueryData firstDatum = data.remove(0);
+      Plan plan = createPlan(firstDatum, tx);
+      // Create plans for rest of the data (if they exist).
+      for (QueryData datum : data) {
+         Plan additionalPlan = createPlan(datum, tx);
+         plan = new UnionPlan(plan, additionalPlan);
+      }
+      return plan;
+   }
+
    /**
     * Creates an optimized left-deep query plan using the following
     * heuristics.
@@ -22,8 +41,7 @@ public class HeuristicQueryPlanner implements QueryPlanner {
     * H2. Add the table to the join order which
     * results in the smallest output.
     */
-   public Plan createPlan(QueryData data, Transaction tx) {
-      
+   private Plan createPlan(QueryData data, Transaction tx) {
       // Step 1:  Create a TablePlanner object for each mentioned table
       for (String tblname : data.tables()) {
          TablePlanner tp = new TablePlanner(tblname, data.pred(), tx);
@@ -41,9 +59,14 @@ public class HeuristicQueryPlanner implements QueryPlanner {
          else  // no applicable join
             currentplan = getLowestProductPlan(currentplan);
       }
-      
+
+      Plan ret = new ProjectPlan(currentplan, data.fields().keySet());
+      for (Map.Entry<String,String> fieldNames : data.fields().entrySet()) {
+         if (fieldNames.getValue() != null)
+            ret = new RenamePlan(ret, fieldNames.getKey(), fieldNames.getValue());
+      }
       // Step 4.  Project on the field names and return
-      return new ProjectPlan(currentplan, data.fields());
+      return ret;
    }
    
    private Plan getLowestSelectPlan() {
@@ -88,4 +111,5 @@ public class HeuristicQueryPlanner implements QueryPlanner {
       tableplanners.remove(besttp);
       return bestplan;
    }
+
 }

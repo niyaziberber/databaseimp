@@ -14,6 +14,7 @@ class RemoteResultSetImpl extends UnicastRemoteObject implements RemoteResultSet
    private Scan s;
    private Schema sch;
    private RemoteConnectionImpl rconn;
+   private boolean wasNullFlag = false;
 
    /**
     * Creates a RemoteResultSet object.
@@ -51,6 +52,8 @@ class RemoteResultSetImpl extends UnicastRemoteObject implements RemoteResultSet
    public int getInt(String fldname) throws RemoteException {
 		try {
 	      fldname = fldname.toLowerCase(); // to ensure case-insensitivity
+           if (checkAndSetNullFlag(fldname))
+              return 0;
 	      return s.getInt(fldname);
       }
       catch(RuntimeException e) {
@@ -67,7 +70,9 @@ class RemoteResultSetImpl extends UnicastRemoteObject implements RemoteResultSet
    public String getString(String fldname) throws RemoteException {
 		try {
 	      fldname = fldname.toLowerCase(); // to ensure case-insensitivity
-	      return s.getString(fldname);
+           if (checkAndSetNullFlag(fldname))
+              return "";
+           return s.getString(fldname);
       }
       catch(RuntimeException e) {
          rconn.rollback();
@@ -91,6 +96,22 @@ class RemoteResultSetImpl extends UnicastRemoteObject implements RemoteResultSet
    public void close() throws RemoteException {
       s.close();
       rconn.commit();
+   }
+
+   /**
+    * helper function to check if the value is null in specified field.
+    * If it is null, then the wasNull flag will be set to true, otherwise false.
+    * @param fldname name of the field.
+    * @return true if flag value is null
+    */
+   private boolean checkAndSetNullFlag(String fldname) throws RemoteException {
+      boolean flag = s.isNull(fldname);
+      wasNullFlag = flag;
+      return flag;
+   }
+
+   public boolean wasNull() throws RemoteException {
+      return wasNullFlag;
    }
 }
 

@@ -18,7 +18,8 @@ public class Parser {
 // Methods for parsing predicates, terms, expressions, constants, and fields
 
    public String field() {
-      return lex.eatId();
+      String a = lex.eatId();
+      return a;
    }
 
    public Constant constant() {
@@ -75,9 +76,9 @@ public class Parser {
 
 // Methods for parsing queries
 
-   public QueryData query() {
+   public QueryData basicQuery() {
       lex.eatKeyword("select");
-      Collection<String> fields = selectList();
+      Map<String, String> fields = selectList();
       lex.eatKeyword("from");
       Collection<String> tables = tableList();
       Predicate pred = new Predicate();
@@ -88,14 +89,38 @@ public class Parser {
       return new QueryData(fields, tables, pred);
    }
 
-   private Collection<String> selectList() {
-      Collection<String> L = new ArrayList<String>();
-      L.add(field());
+   public List<QueryData> query() {
+      List<QueryData> lst = new ArrayList<>();
+      lst.add(basicQuery());
+      while (lex.matchKeyword("union")) {
+         lex.eatKeyword("union");
+         lst.add(basicQuery());
+      }
+      return lst;
+
+   }
+
+   private Map<String, String> selectList() {
+      Map<String, String> m = new HashMap<>();
+      String[] field = selectField();
+      m.put(field[0], field[1]);
       if (lex.matchDelim(',')) {
          lex.eatDelim(',');
-         L.addAll(selectList());
+         m.putAll(selectList());
       }
-      return L;
+      return m;
+   }
+
+   // actual field name goes in [0], as field name goes in [1]
+   // if no as field, then null.
+   private String[] selectField() {
+      String[] s = new String[2];
+      s[0] = field();
+      if (lex.matchKeyword("as")) {
+         lex.eatKeyword("as");
+         s[1] = field();
+      }
+      return s;
    }
 
    private Collection<String> tableList() {
@@ -246,7 +271,7 @@ public class Parser {
       lex.eatKeyword("view");
       String viewname = lex.eatId();
       lex.eatKeyword("as");
-      QueryData qd = query();
+      QueryData qd = basicQuery();
       return new CreateViewData(viewname, qd);
    }
 

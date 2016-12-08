@@ -133,8 +133,6 @@ public class RecoveryMgr {
        Integer nqCkptEndpoint = -1;
       while (iter.hasNext()) {
          LogRecord rec = iter.next();
-         System.out.println(rec);
-
           if ((Arrays.asList(START, COMMIT, ROLLBACK).contains(rec.op())) &&
                   nqCkptEndpoint == rec.txNumber())
               return;

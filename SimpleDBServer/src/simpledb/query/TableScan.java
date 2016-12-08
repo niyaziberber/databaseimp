@@ -72,7 +72,11 @@ public class TableScan implements UpdateScan {
    public boolean hasField(String fldname) {
       return sch.hasField(fldname);
    }
-   
+
+   public boolean isNull(String fldname) {
+      return rf.isNull(fldname);
+   }
+
    // UpdateScan methods
    
    /**

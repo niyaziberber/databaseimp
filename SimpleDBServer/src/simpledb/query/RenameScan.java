@@ -51,5 +51,9 @@ public class RenameScan implements Scan {
         else
             return s.hasField(fldname);
     }
+
+    public boolean isNull(String fldname) {
+        return s.isNull(oldfldname);
+    }
 }
 

@@ -8,14 +8,15 @@ import java.util.*;
  * @author Edward Sciore
  */
 public class QueryData {
-   private Collection<String> fields;
+   // map from actual key to "as" value. If it doesn't have as value, will be null.
+   private Map<String, String> fields;
    private Collection<String> tables;
    private Predicate pred;
    
    /**
     * Saves the field and table list and predicate.
     */
-   public QueryData(Collection<String> fields, Collection<String> tables, Predicate pred) {
+   public QueryData(Map<String,String> fields, Collection<String> tables, Predicate pred) {
       this.fields = fields;
       this.tables = tables;
       this.pred = pred;
@@ -25,7 +26,7 @@ public class QueryData {
     * Returns the fields mentioned in the select clause.
     * @return a collection of field names
     */
-   public Collection<String> fields() {
+   public Map<String, String> fields() {
       return fields;
    }
    
@@ -48,8 +49,14 @@ public class QueryData {
    
    public String toString() {
       String result = "select ";
-      for (String fldname : fields)
-         result += fldname + ", ";
+      for (Map.Entry<String,String> fldname : fields.entrySet()) {
+         String realName = fldname.getKey();
+         String asName = fldname.getValue();
+         result += realName;
+         if (asName != null)
+            result += " as " + asName;
+         result += ", ";
+      }
       result = result.substring(0, result.length()-2); //remove final comma
       result += " from ";
       for (String tblname : tables)

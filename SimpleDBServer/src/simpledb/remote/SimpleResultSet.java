@@ -60,5 +60,14 @@ public class SimpleResultSet extends ResultSetAdapter {
          throw new SQLException(e);
       }
    }
+
+   public boolean wasNull() throws SQLException {
+      try {
+         return rrs.wasNull();
+      }
+      catch (Exception e) {
+         throw new SQLException(e);
+      }
+   }
 }
 

@@ -102,7 +102,12 @@ public class ChunkScan implements Scan {
    public boolean hasField(String fldname) {
       return sch.hasField(fldname);
    }
-   
+
+   @Override
+   public boolean isNull(String fldname) {
+      return rp.isNull(fldname);
+   }
+
    private void moveToBlock(int blknum) {
       current = blknum;
       rp = pages.get(current - startbnum);

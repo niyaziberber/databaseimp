@@ -73,3 +73,5 @@ hs_err_pid*
 SimpleDB/.idea/*
 SimpleDBServer/.idea/*
 SimpleDB/simpledb2.10.iml
+*.docx
+*.zip

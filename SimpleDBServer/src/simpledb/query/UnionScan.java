@@ -44,6 +44,10 @@ public class UnionScan implements Scan {
     public boolean hasField(String fldname) {
         return current.hasField(fldname);
     }
+
+    public boolean isNull(String fldname) {
+        return current.isNull(fldname);
+    }
 }
 
 
